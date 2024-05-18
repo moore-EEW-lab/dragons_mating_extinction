@@ -1,0 +1,28 @@
+#Manuscript Title: Mating traits underlie the risk of local extinction to global warming and wildfire activity in Narcotic dragonflies
+Year: 2024
+ 
+#File Name: mating.extinction.csv
+#Associated phylogeny for phylogenetic analysis: mating.extinction.phylo.tre for 60 species in analysis. Pruned from phylogeny in Rocha-Ortega et al. 2020 Proc B
+#Description: local extinctions/persistence in the face for regional warming and wildfire activity for North American dragonfly species with different mating traits
+#Rows: 1604, excluding the header. Each row corresponds to whether a species in a particular geographic locale persisted or went extinct between 1980 and the present
+#Columns: 9. FID, Persistence, Family, Genus, Genus_species, Repro_strategy, M_wing_color, z.temp.change, z.burned
+ 
+#FID: unique identifier for geographic location in which species local extinctions/persitences were observed
+
+# Persistence: binary variable indicating whether a species that existed in a FID grid cell between 1980-2002 was observed again (1) or not (0) persist in that same FID grid cell between 2003-2021.
+ 
+#Family: Taxonomic family of the species
+ 
+#Genus: Taxonomic genus of the species
+
+#Genus_species: Binomial nomenclature for the species
+
+#Repro_strategy: two-level categorical variable corresponding to whether a species deploys the percher (p) or flier (f) behavioral strategy when defending reproductive territories
+
+#M_wing_color: two-level categorical variable corresponding to whether a species does (y) or does not (n) possess at least some dark melanin ornamentation within its wing cells
+
+#z.temp.change: z-transformed change in average monthly maximum temperature (°C) between the historical time period (1980-2002) and the current time period (2003-2018)
+
+#z.burned: z-transformed amount of ln-transformed km2 area burned between 1980 and 2002. 
+
+
