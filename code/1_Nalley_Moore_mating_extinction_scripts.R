@@ -1,4 +1,4 @@
-setwd('/Users/michaelmoore/Desktop/Working Directory')
+
 
 library(car)
 library(MASS)
