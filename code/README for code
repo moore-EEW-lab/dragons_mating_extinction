@@ -1,0 +1,9 @@
+##### Analyses in Nalley & Moore "Mating characteristics underlie the risk of local extinction to global warming and wildfires in Nearctic dragonflies"
+
+# folder includes one .R script file "1_Nalley_Moore_mating_extinction_scripts.R". 
+
+# This script file has code used for:
+
+##the generalized linear mixed-effects models presented in the main text
+##the supplemental tests of whether a phylogeny needs to be directly modeled
+## and the production of the panels with data in Figures 2 & 3
