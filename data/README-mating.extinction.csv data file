@@ -1,18 +1,17 @@
 #Manuscript Title: Mating traits underlie the risk of local extinction to global warming and wildfire activity in Narcotic dragonflies
 Year: 2024
- 
-#File Name: mating.extinction.csv
-#Associated phylogeny for phylogenetic analysis: mating.extinction.phylo.tre for 60 species in analysis. Pruned from phylogeny in Rocha-Ortega et al. 2020 Proc B
+ 
+#File 1 Name: nalley_moore_revised_ext.csv
 #Description: local extinctions/persistence in the face for regional warming and wildfire activity for North American dragonfly species with different mating traits
 #Rows: 1604, excluding the header. Each row corresponds to whether a species in a particular geographic locale persisted or went extinct between 1980 and the present
-#Columns: 9. FID, Persistence, Family, Genus, Genus_species, Repro_strategy, M_wing_color, z.temp.change, z.burned
- 
-#FID: unique identifier for geographic location in which species local extinctions/persitences were observed
+#Columns: 13. FID, Persistence, Family, Genus, Genus_species, Repro_strategy, M_wing_color, z.temp.change, z.all.burned, z.high.burned, z.hist.temp, m.dark.score, z.per.obs
+ 
+#FID: unique identifier for geographic location in which species local persistence/ extinctions were observed
 
 # Persistence: binary variable indicating whether a species that existed in a FID grid cell between 1980-2002 was observed again (1) or not (0) persist in that same FID grid cell between 2003-2021.
- 
+ 
 #Family: Taxonomic family of the species
- 
+ 
 #Genus: Taxonomic genus of the species
 
 #Genus_species: Binomial nomenclature for the species
@@ -23,6 +22,28 @@ Year: 2024
 
 #z.temp.change: z-transformed change in average monthly maximum temperature (°C) between the historical time period (1980-2002) and the current time period (2003-2018)
 
-#z.burned: z-transformed amount of ln-transformed km2 area burned between 1980 and 2002. 
+#z.all.burned: z-transformed cumulative amount of ln-transformed km2 area burned annually by wildfire of all severities between 1980 and 2021
+
+#z.high.burned: z-transformed cumulative amount of ln-transformed km2 area burned annually by high severity wildfire between 1981 and 2021
+
+#z.hist.temp: z-transformed change in average monthly maximum temperature (°C) during the historical time period (1980-2002)
+
+#m.dark.score: wing ornamentation quantified as a 3-level factor corresponding to a species’ color darkness variation (2=black, 1=brown/yellow, 0=no ornamented)
+
+#z.per.obs: the total number of observations of all species for each grid cell
 
 
+#File 2 Name: FIDcoordinates_states.csv
+#Description: location data for each 100 x 100 km grid cell used in this study
+#Rows: 883, excluding the header. Each row corresponds to the geographic location of a 100 x 100 km grid cell in the contiguous United States. All coordinates are specified using WGS 84 coordinate system
+#Columns: 4. FID, Latitude, Longitude, STATE_ABBR, STATE_NAME
+
+#FID: unique identifier for geographic location in which environmental variables were measured and species local persistence/ extinctions were observed
+
+#Latitude: the latitude of the centroid of a grid cell in decimal degrees
+
+#Longitude: the longitude of the centroid of a grid cell in decimal degrees
+
+#STATE_ABBR: the abbreviation of the US state in which the centroid of a grid cell is aligned
+
+#STATE_NAME: the US state name in which the centroid of a grid cell is aligned
