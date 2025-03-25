@@ -1,0 +1,454 @@
+##### R scripts for estimating local extinctions and making predictions for range loss
+
+library(car)
+library(rspatial)
+library(MASS)
+library(lme4)
+library(lmerTest)
+library(emmeans)
+library(MuMIn)
+library(phytools)
+library(MCMCglmm)
+library(visreg)
+
+all.dat <- read.csv('extinctions.csv')
+
+
+
+####### climate change
+# ornamentation
+new.a.mod00 <- glmer(Persistence ~ M_wing_color + z.temp.change + M_wing_color:z.temp.change + (1|FID) + (1|Genus_species) + (1|Genus) + (1|Family), family = 'binomial', data = all.dat, control = glmerControl('bobyqa'), na.action = na.fail)
+emtrends(new.a.mod00, specs =~'M_wing_color', var = 'z.temp.change')
+ # M_wing_color z.temp.change.trend    SE  df asymp.LCL asymp.UCL
+ # n                         -0.171 0.134 Inf    -0.433    0.0918
+ # y                         -0.515 0.132 Inf    -0.774   -0.2571
+ 
+#generalist vs specialist
+new.a.mod00b <- glmer(Persistence ~  gen.spec + z.temp.change + gen.spec:z.temp.change + (1|FID) + (1|Genus_species) + (1|Genus) + (1|Family), family = 'binomial', data = all.dat, control = glmerControl('bobyqa'), na.action = na.fail)
+emtrends(new.a.mod00b, specs =~'gen.spec', var = 'z.temp.change') # both negatively affected
+
+ # gen.spec z.temp.change.trend    SE  df asymp.LCL asymp.UCL
+ # gen                   -0.421 0.151 Inf    -0.717   -0.1239
+ # spec                  -0.308 0.120 Inf    -0.544   -0.0732
+ 
+ 
+# climatic niche
+new.a.mod00c <- glmer(Persistence ~  z.bio5  + z.temp.change + z.bio5:z.temp.change + (1|FID) + (1|Genus_species) + (1|Genus) + (1|Family), family = 'binomial', data = all.dat, control = glmerControl('bobyqa'), na.action = na.fail)
+summary(new.a.mod00c)
+# z.bio5:z.temp.change -0.15441    0.08285
+confint(new.a.mod00c, parm = 'z.bio5:z.temp.change') 
+#-0.317 to 0.008
+
+# body size
+new.a.mod00d <- glmer(Persistence ~  z.size + z.temp.change + z.size:z.temp.change + (1|FID) + (1|Genus_species) + (1|Genus) + (1|Family), family = 'binomial', data = all.dat, control = glmerControl('bobyqa'), na.action = na.fail)
+summary(new.a.mod00d)
+#0.10199 +/-  0.08131
+confint(new.a.mod00d, parm = 'z.size:z.temp.change')
+#-0.057 to 0.261
+
+
+
+###### effects of Wildfire
+
+# ornaments
+new.f.mod00 <- glmer(Persistence ~ M_wing_color + z.temp.change + M_wing_color:z.temp.change + z.all.burned + M_wing_color:z.all.burned + (1|FID) + (1|Genus_species) + (1|Genus) + (1|Family), family = 'binomial', data = all.dat, control = glmerControl('bobyqa'), na.action = na.fail)
+emtrends(new.f.mod00, specs =~'M_wing_color', var = 'z.all.burned')
+ # n                        -0.192 0.148 Inf    -0.481    0.0979
+ # y                        -0.450 0.131 Inf    -0.707   -0.1924
+vif(new.f.mod00)
+              # M_wing_color              z.temp.change               z.all.burned M_wing_color:z.temp.change  M_wing_color:z.all.burned 
+                  # 1.003935                   1.667315                   1.733773                   1.677993                   1.746537
+
+# high burn severity - ornaments vs non-ornaments                  
+new.f.mod01 <- glmer(Persistence ~ M_wing_color + z.temp.change + M_wing_color:z.temp.change + z.high.burned + M_wing_color:z.high.burned + (1|FID) + (1|Genus_species) + (1|Genus) + (1|Family), family = 'binomial', data = all.dat, control = glmerControl('bobyqa'), na.action = na.fail)
+emtrends(new.f.mod00b, specs =~'M_wing_color', var = 'z.high.burned') 
+
+ # M_wing_color z.high.burned.trend    SE  df asymp.LCL asymp.UCL
+ # n                         0.0536 0.157 Inf    -0.255    0.3617
+ # y                        -0.2976 0.146 Inf    -0.585   -0.0106
+ 
+# perchers vs fliers                  
+new.f.mod01c <- glmer(Persistence ~ Repro_strategy + z.temp.change + Repro_strategy:z.temp.change + z.all.burned + Repro_strategy:z.all.burned + (1|FID) + (1|Genus_species) + (1|Genus) + (1|Family), family = 'binomial', data = all.dat, control = glmerControl('bobyqa'), na.action = na.fail)
+emtrends(new.f.mod01c, specs =~'Repro_strategy', var = 'z.all.burned')     
+
+ # Repro_strategy z.all.burned.trend    SE  df asymp.LCL asymp.UCL
+ # f                          -0.391 0.159 Inf    -0.702   -0.0801
+ # p                          -0.305 0.142 Inf    -0.584   -0.0258
+              
+# controlling for historical temp
+new.f.mod01d <- glmer(Persistence ~ M_wing_color + z.temp.change + M_wing_color:z.temp.change + z.all.burned + M_wing_color:z.all.burned + z.hist.temp + (1|FID) + (1|Genus_species) + (1|Genus) + (1|Family), family = 'binomial', data = all.dat, control = glmerControl('bobyqa'), na.action = na.fail)
+emtrends(new.f.mod01d, specs =~'M_wing_color', var = 'z.temp.change') 
+ # M_wing_color z.temp.change.trend    SE  df asymp.LCL asymp.UCL
+ # n                         -0.190 0.143 Inf    -0.470    0.0892
+ # y                         -0.502 0.143 Inf    -0.782   -0.2217
+
+emtrends(new.f.mod01d, specs =~'M_wing_color', var = 'z.all.burned') 
+ # M_wing_color z.all.burned.trend    SE  df asymp.LCL asymp.UCL
+ # n                        -0.259 0.161 Inf    -0.575    0.0567
+ # y                        -0.533 0.146 Inf    -0.819   -0.2466
+
+# controlling for sampling intensity
+new.f.mod01e <- glmer(Persistence ~ M_wing_color + z.temp.change + M_wing_color:z.temp.change + z.all.burned + M_wing_color:z.all.burned + z.per.obs + (1|FID) + (1|Genus_species) + (1|Genus) + (1|Family), family = 'binomial', data = all.dat, control = glmerControl('bobyqa'), na.action = na.fail)
+emtrends(new.f.mod01e, specs =~'M_wing_color', var = 'z.temp.change')
+ # M_wing_color z.temp.change.trend    SE  df asymp.LCL asymp.UCL
+ # n                         -0.113 0.133 Inf    -0.374     0.148
+ # y                         -0.419 0.134 Inf    -0.681    -0.158
+
+
+emtrends(new.f.mod01e, specs =~'M_wing_color', var = 'z.all.burned') 
+ # M_wing_color z.all.burned.trend    SE  df asymp.LCL asymp.UCL
+ # n                        -0.102 0.154 Inf    -0.404    0.2002
+ # y                        -0.351 0.136 Inf    -0.618   -0.0838
+
+
+                 
+# generalist vs specialist 
+new.f.mod00b <- glmer(Persistence ~ gen.spec + z.temp.change + gen.spec:z.temp.change + z.all.burned + gen.spec:z.all.burned + (1|FID) + (1|Genus_species) + (1|Genus) + (1|Family), family = 'binomial', data = all.dat, control = glmerControl('bobyqa'), na.action = na.fail)
+emtrends(new.f.mod00b, specs=~'gen.spec', var = 'z.all.burned') # both negatively affected
+ # gen.spec z.all.burned.trend    SE  df asymp.LCL asymp.UCL
+ # gen                  -0.499 0.163 Inf    -0.818   -0.1794
+ # spec                 -0.276 0.127 Inf    -0.524   -0.0275
+
+
+vif(new.f.mod00b) 
+              # gen.spec          z.temp.change           z.all.burned gen.spec:z.temp.change  gen.spec:z.all.burned 
+              # 1.005975               2.179584               2.063712               2.179446               2.068186 
+              
+# Climatic Niche
+new.f.mod00c <- glmer(Persistence ~ z.bio5 + z.temp.change + z.all.burned + z.bio5:z.temp.change + z.bio5:z.all.burned + (1|FID) + (1|Genus_species) + (1|Genus) + (1|Family), family = 'binomial', data = all.dat, control = glmerControl('bobyqa'), na.action = na.fail)
+summary(new.f.mod00c) # no effect
+# -0.12687    0.09271
+confint(new.f.mod00c, parm = 'z.bio5:z.all.burned')
+# -0.309 to 0.0548416
+
+vif(new.f.mod00c)
+              # z.bio5        z.temp.change         z.all.burned z.bio5:z.temp.change  z.bio5:z.all.burned 
+            # 1.035904             1.083097             1.112286             1.046365             1.111145              
+            
+
+# body size
+new.f.mod00d <- glmer(Persistence ~ z.size + z.temp.change + z.size:z.temp.change + z.all.burned + z.size:z.all.burned + (1|FID) + (1|Genus_species) + (1|Genus), family = 'binomial', data = all.dat, control = glmerControl(optimizer = 'bobyqa'), na.action = na.fail) # won't converge with z-transformed body size and family in the model. Family contributes the least to the random effects, so removed
+summary(new.f.mod00d) # no effect
+# -0.08332    0.08687
+confint(new.f.mod00d, parm = 'z.size:z.all.burned')
+# -0.254 to 0.087
+
+vif(new.f.mod00d)
+              # z.size        z.temp.change         z.all.burned z.size:z.temp.change  z.size:z.all.burned 
+            # 1.008245             1.018934             1.011011             1.036646             1.027715 
+
+# relative wing size
+
+                
+                
+### graphs
+#### make figure for persistence/extinction in response to climate change for ornamented and non-ornamented species
+M_wing_color <- c(rep('n', 1000), rep('y', 1000))
+z.temp.change <- rep(seq(min(all.dat$z.temp.change), max(all.dat$z.temp.change), length.out = 1000), 2)
+col.frame <- data.frame(M_wing_color, z.temp.change)
+col.frame$pred.persist <- predict(new.a.mod00, newdata = col.frame, re.form = NA, type = 'response')
+
+## function for bootstrapping the 95% confidence intervals
+myFunc2 <- function(mm) {
+  predict(mm, newdata = col.frame, re.form = NA, type = 'response')
+}
+
+col.boot <- bootMer(new.a.mod00, FUN = myFunc2, use.u = TRUE, type = 'parametric', nsim = 500) 
+
+pred.col.boot <- t(apply(col.boot$t, MARGIN = 2, FUN = quantile, probs = c(0.025, 0.975)))
+col.frame$lci <- pred.col.boot [,1] # lower bound of the confidence band (allegedly) - this looks sensible to me based on the model output
+col.frame$uci <- pred.col.boot [,2] # upper bound of the confidence band (allegedly) - this looks sensible to me based on the model output
+col.frame$se <- apply(col.boot$t, MARGIN = 2, FUN = sd) # allegedly this is the standard error
+
+all.dat$persist.temp.orn <- ifelse(all.dat$M_wing_color == 'y' & all.dat$Persistence == 1, all.dat$z.temp.change, NA)
+all.dat$not.persist.temp.orn <- ifelse(all.dat$M_wing_color == 'y' & all.dat$Persistence == 0, all.dat$z.temp.change, NA)
+all.dat$persist.temp.non.orn <- ifelse(all.dat$M_wing_color == 'n' & all.dat$Persistence == 1, all.dat$z.temp.change, NA)
+all.dat$not.persist.temp.non.orn <- ifelse(all.dat$M_wing_color == 'n' & all.dat$Persistence == 0, all.dat$z.temp.change, NA)
+
+
+
+o.persist.plot <- 
+  ggplot(data = col.frame, aes(x = z.temp.change, group = M_wing_color)) +
+  geom_rug(data = all.dat, aes(x = persist.temp.non.orn), color = 'slategray', sides = 't', outside = FALSE, length = unit(0.4, 'lines')) +
+  geom_rug(data = all.dat, aes(x = not.persist.temp.non.orn), color = 'slategray', sides = 'b', outside = FALSE, length = unit(0.4, 'lines')) +
+  geom_rug(data = all.dat, aes(x = persist.temp.orn), color = 'sienna', sides = 't', outside = FALSE, length = unit(0.4, 'lines'), alpha = 0.4) +
+  geom_rug(data = all.dat, aes(x = not.persist.temp.orn), color = 'sienna', sides = 'b', outside = FALSE, length = unit(0.4, 'lines'), alpha = 0.4) +
+  geom_ribbon(data = col.frame, aes(x = z.temp.change, ymin = lci, ymax = uci, fill = M_wing_color), alpha = 0.32, size = 1) +
+  geom_line(data = col.frame, aes(x = z.temp.change, y = pred.persist, color = M_wing_color, linetype = M_wing_color), size = 1) +
+  scale_color_manual(values = c('slategray4', 'sienna'), guide = 'none') +
+  scale_fill_manual(values = c('slategray3', 'sienna'), guide = 'none') +
+  scale_linetype_manual(values = c(2, 1), guide = 'none') +
+  coord_cartesian(ylim = c(0.29, 1)) +
+  scale_y_continuous(breaks = c(0.3, 0.5, 0.7, 0.9)) +
+  scale_x_continuous(breaks = c(-2.5, -1.25, 0, 1.25, 2.5), labels = c('0.08', '0.29', '0.50', '0.71', '0.92')) +
+  ylab('Probability of still being observed') +
+  xlab('Increase in \u00b0C')
+
+bgrd01 =
+  theme(axis.text = element_text(color="Black"),
+        axis.title.x = element_text(face = "plain", size = 15, margin = margin(t = 10)), 
+        axis.text.x = element_text(size = 12),
+        axis.title.y = element_text(face = "plain", size = 15, margin = margin(r = 10)), 
+        axis.text.y = element_text(size = 12),
+        panel.background = element_rect(fill = "White"),
+        panel.grid.minor=element_blank(), panel.grid.major=element_blank(),
+        axis.line.x = element_line(linetype = 'solid', color = 'black', size = 0.8),
+        axis.line.y = element_line(linetype = 'solid', color = 'black', size = 0.8),
+        legend.key = element_rect(fill = 'white')) 
+
+o.temp.persist.fig <- o.persist.plot + bgrd01
+png('revised.orn.temp.persist.png', width = 3.7, height = 5.28, units = 'in', res = 600)
+print(o.temp.persist.fig)
+dev.off()
+
+
+### make figure for local persistence/extinction for ornamented vs non-ornamented species in response to wildfire activity
+
+### dummy dataset to predict values onto
+M_wing_color <- c(rep('n', 1000), rep('y', 1000))
+z.temp.change <- rep(mean(all.dat$z.temp.change), 2000)
+z.all.burned <- rep(seq(min(all.dat$z.all.burned), max(all.dat$z.all.burned), length.out = 1000), 2)
+burn.frame <- data.frame(M_wing_color, z.temp.change, z.all.burned)
+burn.frame$pred.persist <- predict(new.f.mod00, newdata = burn.frame, re.form = NA, type = 'response')
+
+
+## function for bootstrapping the 95% confidence intervals
+myFunc3 <- function(mm) {
+  predict(mm, newdata = burn.frame, re.form = NA, type = 'response')
+}
+
+wf.boot <- bootMer(new.f.mod00, FUN = myFunc3, use.u = TRUE, type = 'parametric', nsim = 500) # need to use use.u = TRUE, otherwise it spits out prediction intervals instead of confidence intervals (which we don't want)
+
+pred.burn.boot <- t(apply(wf.boot$t, MARGIN = 2, FUN = quantile, probs = c(0.025, 0.975)))
+burn.frame$lci <- pred.burn.boot [,1] # lower bound of the confidence band (allegedly) - this looks sensible to me based on the model output
+burn.frame$uci <- pred.burn.boot [,2] # upper bound of the confidence band (allegedly) - this looks sensible to me based on the model output
+burn.frame$se <- apply(wf.boot$t, MARGIN = 2, FUN = sd) # allegedly this is the standard error
+
+
+### make columns that allow us to plot the raw data onto the figures
+all.dat$persist.burn.orn <- ifelse(all.dat$M_wing_color == 'y' & all.dat$Persistence == 1, all.dat$z.all.burned, NA)
+all.dat$not.persist.burn.orn <- ifelse(all.dat$M_wing_color == 'y' & all.dat$Persistence == 0, all.dat$z.all.burned, NA)
+all.dat$persist.burn.non.orn <- ifelse(all.dat$M_wing_color == 'n' & all.dat$Persistence == 1, all.dat$z.all.burned, NA)
+all.dat$not.persist.burn.non.orn <- ifelse(all.dat$M_wing_color == 'n' & all.dat$Persistence == 0, all.dat$z.all.burned, NA)
+
+
+### mean ln km2 burned = 2.133916
+### sd ln km2 burned = 1.168793
+
+b.persist.plot <- 
+  ggplot(data = burn.frame, aes(x = z.all.burned, group = M_wing_color)) +
+  geom_rug(data = all.dat, aes(x = persist.burn.non.orn), color = 'slategray', sides = 't', outside = FALSE, length = unit(0.4, 'lines')) +
+  geom_rug(data = all.dat, aes(x = not.persist.burn.non.orn), color = 'slategray', sides = 'b', outside = FALSE, length = unit(0.4, 'lines')) +
+  geom_rug(data = all.dat, aes(x = persist.burn.orn), color = 'sienna', sides = 't', outside = FALSE, length = unit(0.4, 'lines'), alpha = 0.4) +
+  geom_rug(data = all.dat, aes(x = not.persist.burn.orn), color = 'sienna', sides = 'b', outside = FALSE, length = unit(0.4, 'lines'), alpha = 0.4) +
+  geom_ribbon(data = burn.frame, aes(x = z.all.burned, ymin = lci, ymax = uci, fill = M_wing_color), alpha = 0.32, size = 1) +
+  geom_line(data = burn.frame, aes(x = z.all.burned, y = pred.persist, color = M_wing_color, linetype = M_wing_color), size = 1) +
+  scale_color_manual(values = c('slategray4', 'sienna'), guide = 'none') +
+  scale_fill_manual(values = c('slategray3', 'sienna'), guide = 'none') +
+  scale_linetype_manual(values = c(2, 1), guide = 'none') +
+  coord_cartesian(ylim = c(0.29, 1)) +
+  scale_y_continuous(breaks = c(0.3, 0.5, 0.7, 0.9)) +
+  scale_x_continuous(breaks = c(-1.5, -0.75, 0, 0.75, 1.5), labels = c('1.46', '3.52', '8.45', '20.30', '48.77')) +
+  ylab('Probability of still being observed') +
+  xlab(expression(paste('Total km'^'2', ' burned')))
+
+bgrd01 =
+  theme(axis.text = element_text(color="Black"),
+        axis.title.x = element_text(face = "plain", size = 15, margin = margin(t = 10)), 
+        axis.text.x = element_text(size = 12),
+        axis.title.y = element_text(face = "plain", size = 15, margin = margin(r = 10)), 
+        axis.text.y = element_text(size = 12),
+        panel.background = element_rect(fill = "White"),
+        panel.grid.minor=element_blank(), panel.grid.major=element_blank(),
+        axis.line.x = element_line(linetype = 'solid', color = 'black', size = 0.8),
+        axis.line.y = element_line(linetype = 'solid', color = 'black', size = 0.8),
+        legend.key = element_rect(fill = 'white')) 
+
+o.burn.persist.fig <- b.persist.plot + bgrd01
+png('revised.o.burn.persist.png', width = 3.7, height = 5.28, units = 'in', res = 600)
+print(o.burn.persist.fig)
+dev.off() 
+
+
+###### projections
+
+## model used for projections. un-z-transform everything to get projections on natural scale
+proj.mod00 <- glmer(Persistence ~ M_wing_color + Change_mean_temp + M_wing_color:Change_mean_temp + (1|FID) + (1|Genus_species) + (1|Genus) + (1|Family), family = 'binomial', data = all.dat, control = glmerControl('bobyqa'), na.action = na.fail)
+
+
+### table to help summarize what we'll need
+#summarySE function
+## Summarizes data.
+## Gives count, mean, standard deviation, standard error of the mean, and confidence interval (default 95%).
+##   data: a data frame.
+##   measurevar: the name of a column that contains the variable to be summariezed
+##   groupvars: a vector containing names of columns that contain grouping variables
+##   na.rm: a boolean that indicates whether to ignore NA's
+##   conf.interval: the percent range of the confidence interval (default is 95%)
+summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE, conf.interval=.95, .drop=TRUE) {
+    require(plyr)
+
+    # New version of length which can handle NA's: if na.rm==T, don't count them
+    length2 <- function (x, na.rm=FALSE) {
+        if (na.rm) sum(!is.na(x))
+        else       length(x)
+    }
+
+    # This is does the summary; it's not easy to understand...
+    datac <- ddply(data, groupvars, .drop=.drop,
+                   .fun= function(xx, col, na.rm) {
+                           c( N    = length2(xx[,col], na.rm=na.rm),
+                              mean = mean   (xx[,col], na.rm=na.rm),
+                              sd   = sd     (xx[,col], na.rm=na.rm)
+                              )
+                          },
+                    measurevar,
+                    na.rm
+             )
+
+    # Rename the "mean" column    
+    datac <- rename(datac, c("mean"=measurevar))
+
+    datac$se <- datac$sd / sqrt(datac$N)  # Calculate standard error of the mean
+
+    # Confidence interval multiplier for standard error
+    # Calculate t-statistic for confidence interval: 
+    # e.g., if conf.interval is .95, use .975 (above/below), and use df=N-1
+    ciMult <- qt(conf.interval/2 + .5, datac$N-1)
+    datac$ci <- datac$se * ciMult
+
+    return(datac)
+}
+
+
+## create data frame to predict onto
+tab <- as.data.frame(summarySE(data = all.dat, measurevar = 'Persistence', groupvar = c('FID', 'Change_mean_temp', 'Genus_species', 'Genus', 'Family', 'M_wing_color')))
+
+# generate probabilities of persistence for average species in each species' grid cell
+tab$probs <- predict(proj.mod00, newdata = tab, re.form = NA, type = 'response')
+head(tab)
+
+# separate out by orn vs non-orn spp
+o.tab <- subset(tab, M_wing_color == 'y')
+n.tab <- subset(tab, M_wing_color == 'n')
+
+# summed probability of persistence across all grid cells in historical range and total number of grid cells in historical range
+summed <- tapply(o.tab$probs,o.tab$Genus_species, sum)
+counts <- table(o.tab$Genus_species)
+
+# create % of grid cells in which species is no longer being observed
+ext <- 1-(summed/counts)
+o.exts <- cbind(counts, summed, ext)
+o.exts <- as.data.frame(o.exts)
+
+
+## summed probability of persistence across all grid cells in historical range and total number of grid cells in historical range
+summed <- tapply(n.tab$probs,n.tab$Genus_species, sum)
+counts <- table(n.tab$Genus_species)
+
+# create % of grid cells in which species is no longer being observed
+ext <- 1-(summed/counts)
+n.exts <- cbind(counts, summed, ext)
+n.exts <- as.data.frame(n.exts)
+
+### summarize
+median(o.exts$ext) # 0.2357883 = median proportion of grid cells extinct already for ornamented species
+sd(o.exts$ext) # sd 0.0257326
+range(o.exts$ext)
+
+median(n.exts$ext) # 0.17222 = median proportion of grid cells extinct already for ornamented species 
+sd(n.exts$ext) # sd 0.0090824
+(0.2357883 - 0.17222)/0.17222 # 0.369111
+
+
+curr.ext <- rbind(o.exts, n.exts)
+curr.ext$orn <- c(rep('orn', 32), rep('non', 28))
+
+
+### graph for current expected extinction due to climate change alone
+curr.ext.plot <-
+ggplot(data = curr.ext, aes(x = orn, y = ext, group = orn)) +
+geom_boxplot(aes(fill = orn), alpha = 0.5, outlier.color = 'white') +
+geom_point(position = position_jitter(width = 0.3), aes(fill = orn), color = 'black', shape = 21, size = 3) +
+coord_cartesian(ylim = c(0.15, 0.65)) +
+scale_y_continuous(breaks = c(0.2, 0.4, 0.6), labels = c('20', '40', '60')) +
+scale_x_discrete(labels = c('non-ornamented', 'ornamented')) +
+scale_fill_manual(values = c('slategray4', 'sienna'), guide = 'none') +
+ylab('% of historical grid cells lost due to climate change')
+
+bgrd01 =
+theme(axis.text = element_text(color="Black"),
+axis.title.y = element_text(face = "plain", size = 20, margin = margin(r = 10)), 
+axis.text.x = element_blank(),
+axis.title.x = element_blank(), 
+axis.text.y = element_text(size = 15),
+panel.background = element_rect(fill = "White"),
+panel.grid.minor=element_blank(), panel.grid.major=element_blank(),
+axis.line.x = element_line(linetype = 'solid', color = 'black', size = 0.8),
+axis.line.y = element_line(linetype = 'solid', color = 'black', size = 0.8),
+legend.key = element_rect(fill = 'white')) 
+
+curr.ext.fig <- curr.ext.plot + bgrd01
+png('curr.orn.ext.png', height = 7, width = 4.13, units = 'in', res = 600)
+print(curr.ext.fig)
+dev.off()
+
+#################### future expected extinctions
+## create data frame to predict onto
+f.tab <- as.data.frame(summarySE(data = all.dat, measurevar = 'Persistence', groupvar = c('FID', 'future_change', 'Genus_species', 'Genus', 'Family', 'M_wing_color')))
+colnames(f.tab) <- c('FID', 'Change_mean_temp', 'Genus_species', 'Genus', 'Family', 'M_wing_color', 'N', 'Persistence', 'sd', 'se', 'ci')
+
+
+# generate probabilities of persistence for average species in each species' grid cell
+f.tab$probs <- predict(proj.mod00, newdata = f.tab, re.form = NA, type = 'response')
+head(f.tab)
+
+# separate out by orn vs non-orn spp
+fo.tab <- subset(f.tab, M_wing_color == 'y' & !is.na(probs))
+fn.tab <- subset(f.tab, M_wing_color == 'n' & !is.na(probs))
+
+# summed probability of persistence across all grid cells in historical range and total number of grid cells in historical range
+summed <- tapply(fo.tab$probs,fo.tab$Genus_species, sum)
+counts <- table(fo.tab$Genus_species)
+
+# create % of grid cells in which species is no longer being observed
+ext <- 1-(summed/counts)
+fo.exts <- cbind(counts, summed, ext)
+fo.exts <- as.data.frame(fo.exts)
+
+median(fo.exts$ext) # 0.5541608 = average proportion of grid cells extinct already for ornamented species
+sd(fo.exts$ext) # sd 0.05757884
+
+
+## summed probability of persistence across all grid cells in historical range and total number of grid cells in historical range
+summed <- tapply(fn.tab$probs,fn.tab$Genus_species, sum)
+counts <- table(fn.tab$Genus_species)
+
+# create % of grid cells in which species is no longer being observed
+ext <- 1-(summed/counts)
+fn.exts <- cbind(counts, summed, ext)
+fn.exts <- as.data.frame(fn.exts)
+
+median(fn.exts$ext) # 0.255222 = average proportion of grid cells extinct already for ornamented species 
+sd(fn.exts$ext) # sd 0.02428072
+
+(0.5541608 -0.255222)/0.255222 # 1.171289
+
+fut.ext <- rbind(fo.exts, fn.exts)
+fut.ext$orn <- c(rep('orn', 32), rep('non', 28))
+
+fut.ext.plot <-
+ggplot(data = fut.ext, aes(x = orn, y = ext, group = orn)) +
+geom_boxplot(aes(fill = orn), alpha = 0.5, outlier.color = 'white') +
+geom_point(position = position_jitter(width = 0.3), aes(fill = orn), color = 'black', shape = 21, size = 3) +
+coord_cartesian(ylim = c(0.15, 0.65)) +
+scale_y_continuous(breaks = c(0.2, 0.4, 0.6), labels = c('20', '40', '60')) +
+scale_x_discrete(labels = c('non-ornamented', 'ornamented')) +
+scale_fill_manual(values = c('slategray4', 'sienna'), guide = 'none') +
+ylab('Expected % of historical range lost due to climate change')
+
+
+fut.ext.fig <- fut.ext.plot + bgrd01
+png('fut.orn.ext.png', height = 7.5, width = 4.13, units = 'in', res = 600)
+print(fut.ext.fig)
+dev.off()
