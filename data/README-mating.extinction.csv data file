@@ -1,17 +1,17 @@
-#Manuscript Title: Mating traits underlie the risk of local extinction to global warming and wildfire activity in Narcotic dragonflies
-Year: 2024
- 
-#File 1 Name: nalley_moore_revised_ext.csv
+#Manuscript Title: A warmer and fierier world is driving showy dragonflies extinct
+Year: 2025
+ 
+#File 1 Name: extinctions.csv
 #Description: local extinctions/persistence in the face for regional warming and wildfire activity for North American dragonfly species with different mating traits
 #Rows: 1604, excluding the header. Each row corresponds to whether a species in a particular geographic locale persisted or went extinct between 1980 and the present
-#Columns: 13. FID, Persistence, Family, Genus, Genus_species, Repro_strategy, M_wing_color, z.temp.change, z.all.burned, z.high.burned, z.hist.temp, m.dark.score, z.per.obs
- 
+#Columns: 17. FID, Genus_species, Persistence, Family, Genus, Repro_strategy, M_wing_color, z.temp.change, z.all.burned, z.high.burned, z.hist.temp, z.per.obs, z.size, gen.spec, z.bio5, Change_mean_temp, future_change
+ 
 #FID: unique identifier for geographic location in which species local persistence/ extinctions were observed
 
 # Persistence: binary variable indicating whether a species that existed in a FID grid cell between 1980-2002 was observed again (1) or not (0) persist in that same FID grid cell between 2003-2021.
- 
+ 
 #Family: Taxonomic family of the species
- 
+ 
 #Genus: Taxonomic genus of the species
 
 #Genus_species: Binomial nomenclature for the species
@@ -20,7 +20,7 @@ Year: 2024
 
 #M_wing_color: two-level categorical variable corresponding to whether a species does (y) or does not (n) possess at least some dark melanin ornamentation within its wing cells
 
-#z.temp.change: z-transformed change in average monthly maximum temperature (°C) between the historical time period (1980-2002) and the current time period (2003-2018)
+#z.temp.change: z-transformed change in average monthly maximum temperature (°C) between the historical time period (1980-2002) and the current time period (2003-2021)
 
 #z.all.burned: z-transformed cumulative amount of ln-transformed km2 area burned annually by wildfire of all severities between 1980 and 2021
 
@@ -28,9 +28,18 @@ Year: 2024
 
 #z.hist.temp: z-transformed change in average monthly maximum temperature (°C) during the historical time period (1980-2002)
 
-#m.dark.score: wing ornamentation quantified as a 3-level factor corresponding to a species’ color darkness variation (2=black, 1=brown/yellow, 0=no ornamented)
-
 #z.per.obs: the total number of observations of all species for each grid cell
+
+#z.size: z-transformed body length (mm)
+
+#gen.spec: whether a species was a specialist on a particular habitat (uses only forest or open habitats) or a generalist (uses both)
+
+#z.bio5: z-transformed mean of the maximum temperatures that a species encounters across its range
+
+#Change_mean_temp: change in average monthly maximum temperature (°C) between the historical time period (1980-2002) and the current time period (2003-2021)
+#future_change: change in average monthly maximum temperature (°C) between the present (2021) and 40 years from now (2061)
+
+
 
 
 #File 2 Name: FIDcoordinates_states.csv
