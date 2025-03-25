@@ -1,4 +1,4 @@
-# Data and code for Nalley &amp; Moore "Mating characteristics underlie the risk of extinction to global warming and wildfires in Nearctic dragonflies"
+# Data and code for Nalley &amp; Moore "A warmer and fierier world is driving showy dragonflies extinct"
 
 
 ## repository includes two folders: 
