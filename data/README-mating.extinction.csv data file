@@ -37,9 +37,10 @@ Year: 2025
 #z.bio5: z-transformed mean of the maximum temperatures that a species encounters across its range
 
 #Change_mean_temp: change in average monthly maximum temperature (°C) between the historical time period (1980-2002) and the current time period (2003-2021)
+
 #future_change: change in average monthly maximum temperature (°C) between the present (2021) and 40 years from now (2061)
 
-
+#orn.dark: 3-level variable describing whether a species had no ornamentation (0), yellow to brown ornamentation (1), black ornamentation (2)
 
 
 #File 2 Name: FIDcoordinates_states.csv
