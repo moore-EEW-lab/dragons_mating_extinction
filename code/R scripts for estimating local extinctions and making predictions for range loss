@@ -46,7 +46,15 @@ summary(new.a.mod00d)
 confint(new.a.mod00d, parm = 'z.size:z.temp.change')
 #-0.057 to 0.261
 
+## dark score
+all.dat$orn.dark <- as.factor(all.dat$orn.dark)
 
+new.a.mod00g <- glmer(Persistence ~ orn.dark + z.temp.change + orn.dark:z.temp.change + (1|FID) + (1|Genus_species) + (1|Genus) + (1|Family), family = 'binomial', data = all.dat, control = glmerControl('bobyqa'), na.action = na.fail)
+emtrends(new.a.mod00g, specs =~'orn.dark', var = 'z.temp.change')
+ # orn.dark z.temp.change.trend    SE  df asymp.LCL asymp.UCL
+ # 0                     -0.170 0.140 Inf    -0.445     0.105
+ # 1                     -0.549 0.176 Inf    -0.893    -0.205
+ # 2                     -0.437 0.156 Inf    -0.742    -0.131
 
 ###### effects of Wildfire
 
@@ -137,7 +145,13 @@ vif(new.f.mod00d)
               # z.size        z.temp.change         z.all.burned z.size:z.temp.change  z.size:z.all.burned 
             # 1.008245             1.018934             1.011011             1.036646             1.027715 
 
-# relative wing size
+# dark score
+new.f.mod00g <- glmer(Persistence ~ orn.dark + z.temp.change + orn.dark:z.temp.change + z.all.burned + orn.dark:z.all.burned + (1|FID) + (1|Genus_species) + (1|Genus) + (1|Family), family = 'binomial', data = all.dat, control = glmerControl('bobyqa'), na.action = na.fail)
+emtrends(new.f.mod00g, specs =~'orn.dark', var = 'z.all.burned') 
+ # orn.dark z.all.burned.trend    SE  df asymp.LCL asymp.UCL
+ # 0                    -0.243 0.159 Inf    -0.555    0.0693
+ # 1                    -0.272 0.174 Inf    -0.613    0.0677
+ # 2                    -0.490 0.151 Inf    -0.786   -0.1949
 
                 
                 
